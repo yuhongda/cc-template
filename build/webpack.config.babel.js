@@ -8,7 +8,7 @@ var webpack = require('webpack'),
     BomPlugin = require('webpack-utf8-bom'),
     FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin');
 
-var _version = '20180126';
+var _version = '20180503';
 const isProd = process.env.NODE_ENV === 'production';
 
 module.exports = {
