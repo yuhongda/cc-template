@@ -13,8 +13,9 @@ const isProd = process.env.NODE_ENV === 'production';
 
 module.exports = {
     entry: {
-        app: process.env.NODE_ENV === 'production' ? ['./app.js'] : ['./build/dev-client', './app.js'],
-        vendor:['vue', 'vue-router', 'vuex']
+        checkIn: process.env.NODE_ENV === 'production' ? ['./app-checkIn.js'] : ['./build/dev-client', './app-checkIn.js'],
+        theWall: process.env.NODE_ENV === 'production' ? ['./app-theWall.js'] : ['./build/dev-client', './app-theWall.js'],
+        vendor: ["vue", "vue-router", "vuex", "rxjs", "vue-rx", "tracking"]
     },
     output: {
         path: path.resolve(__dirname, '../dist'),
@@ -154,10 +155,49 @@ module.exports.plugins = [
         }
     }),
     new webpack.NoEmitOnErrorsPlugin(),
-    new HtmlWebpackPlugin({
-        filename:'index.html',
-        template:'index.template.html',
-        inject: 'true'
+    new HtmlWebpackPlugin({ 
+        // favicon: './src/images/favicon.ico', 
+        filename: `./checkin.html`, 
+        template: `./template-checkIn.html`,
+        // inject: 'head',
+        inject: true,
+        chunks: ['vendor', 'checkIn'],
+        chunksSortMode: function (a, b) {
+            let orders = ['vendor', 'checkIn'];
+            if (orders.indexOf(a.names[0]) > orders.indexOf(b.names[0])) {
+                return 1;
+            } else if (orders.indexOf(a.names[0]) < orders.indexOf(b.names[0])) {
+                return -1;
+            } else {
+                return 0;
+            }
+        },
+        minify: { 
+          removeComments: false, 
+          collapseWhitespace: false
+        }
+    }),
+    new HtmlWebpackPlugin({ 
+        // favicon: './src/images/favicon.ico', 
+        filename: `./thewall.html`, 
+        template: `./template-theWall.html`,
+        // inject: 'head',
+        inject: true,
+        chunks: ['vendor', 'theWall'],
+        chunksSortMode: function (a, b) {
+            let orders = ['vendor', 'theWall'];
+            if (orders.indexOf(a.names[0]) > orders.indexOf(b.names[0])) {
+                return 1;
+            } else if (orders.indexOf(a.names[0]) < orders.indexOf(b.names[0])) {
+                return -1;
+            } else {
+                return 0;
+            }
+        },
+        minify: { 
+          removeComments: false, 
+          collapseWhitespace: false
+        }
     }),
     new CopyWebpackPlugin([
         { from: './src/images/**', to: process.env.NODE_ENV === 'production'
@@ -212,5 +252,5 @@ if (process.env.NODE_ENV === 'production') {
     module.exports.plugins = (module.exports.plugins || []).concat([
         new webpack.HotModuleReplacementPlugin()
     ]);
-    module.exports.devtool = '#cheap-module-eval-source-map'
+    module.exports.devtool = 'source-map'
 }

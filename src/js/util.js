@@ -72,3 +72,21 @@ export function ellipsis(str, limit){
     
     return str;
 }
+
+export function getQueryString(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return unescape(r[2]); return null;
+}
+
+export function objectToQueryString(params) {
+    let paramsQueryStringArray = []
+    for (const key of Object.keys(params)) {
+      if (params[key] === undefined) {
+        continue;
+      }
+
+      paramsQueryStringArray.push(`${key}=${params[key]}`);
+    }
+    return paramsQueryStringArray.join('&')
+}

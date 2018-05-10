@@ -1,7 +1,9 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import moment from 'moment';
-import { fetchUserinfo, fetchSystemMenu } from '../js/api'
+import { fetchUserinfo, fetchSystemMenu, getAccessToken, validateAccessToken, getWechatUserinfo } from '../js/api'
+import { getQueryString } from '../js/util'
+
 import { 
     Message
 } from 'element-ui'
@@ -101,6 +103,31 @@ const store = new Vuex.Store({
         },
         setCurrentPage({commit}, value){
             commit('setCurrentPage', value)
+        },
+        async batchFetch(){
+            const code = getQueryString('code')
+            alert(code)
+            const result = await getAccessToken({
+                appid: 'wxea81161da9af8167',
+                secret: '4c64e5d683908d81b645e62f36b398cb',
+                code: code,
+                grant_type: 'authorization_code'
+            })
+            alert(JSON.stringify(result))
+
+            const resultValidate = await validateAccessToken({
+                access_token: result.access_token,
+                openid: result.openid
+            })
+            alert(JSON.stringify(resultValidate))
+
+            const userInfo = await getWechatUserinfo({
+                access_token: result.access_token,
+                openid: result.openid,
+                lang: 'zh_CN'
+            })
+            alert(JSON.stringify(userInfo))
+
         }
     },
     modules:{

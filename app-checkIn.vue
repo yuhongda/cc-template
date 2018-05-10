@@ -26,7 +26,6 @@
     /* layout */
     .site-wrap{height: 100%;}
     .page-wrap{
-        padding:61px 0 0 200px;
         .page-content{margin:20px;background: #fff; padding:20px;}
     }
 
@@ -34,8 +33,6 @@
 
 <template>
     <div class="site-wrap">
-        <site-header></site-header>
-        <site-sider></site-sider>
         <transition name="slide-fade">
             <router-view></router-view>
         </transition>
@@ -46,8 +43,6 @@
     import Vue from 'vue'
     import { mapState, mapGetters } from 'vuex'
     import Rx from 'rxjs/Rx'
-    import SiteHeader from './src/pages/components/SiteHeader.vue'
-    import SiteSider from './src/pages/components/SiteSider.vue'
 
     export default {
         data() {
@@ -56,19 +51,13 @@
             }
         },
         computed:{
-            ...mapState({
-                permission: state => state.permission,
-            })
         },
         components:{
-            SiteHeader,
-            SiteSider
         },
         methods:{
             
         },
         created (){
-            this._selectedDept = this.selectedDept;
 
         },
         mounted (){

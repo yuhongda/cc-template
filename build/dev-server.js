@@ -12,6 +12,10 @@ const Koa = require('koa')
 const webpack = require('webpack')
 const proxyMiddleware = require('http-proxy-middleware')
 const webpackConfig = require('./webpack.config.babel')
+const util = require('./util')
+
+util.compressImages('./src/images/')
+
 
 const port = process.env.PORT || config.dev.port
 const autoOpenBrowser = !!config.dev.autoOpenBrowser

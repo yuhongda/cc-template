@@ -1,7 +1,8 @@
 import Rx from 'rxjs/Rx'
+import fetchJsonp from 'fetch-jsonp';
+import { objectToQueryString } from './util'
 
-// var host = __ENV == 'pro' ? 'http://aiscm.jd.com' : 'http://192.168.123.13:8082';
-var host = __ENV == 'pro' ? 'http://aiscm.jd.com' : 'http://localhost:3008';
+const host = __ENV == 'pro' ? '' : 'http://localhost:3008';
 
 /**
  * 获取userinfo
@@ -12,7 +13,7 @@ export function fetchUserinfo() {
         dataType: 'json',
         type: 'get',
         cache: false
-    }).promise())
+    }).promise()).toPromise()
 }
 
 /**
@@ -79,3 +80,41 @@ export function fetchPage2Data(params) {
     }).promise())
 }
 
+
+/**
+ * 微信授权
+ */
+export function getAccessToken(params) {
+    // return Rx.Observable.fromPromise($.ajax({
+    //     url: `https://api.weixin.qq.com/sns/oauth2/access_token`,
+    //     data: params || {},
+    //     dataType: 'jsonp',
+    //     type: 'get',
+    //     cache: false
+    // }).promise()).toPromise()
+    return new Promise((resolve, reject) => {
+        fetchJsonp(`https://api.weixin.qq.com/sns/oauth2/access_token?${objectToQueryString(params)}`, {
+            jsonpCallback: 'callback'
+        }).then(response => {
+            return resolve(response.json());
+        })
+    })
+}
+export function validateAccessToken(params) {
+    return new Promise((resolve, reject) => {
+        fetchJsonp(`https://api.weixin.qq.com/sns/auth?${objectToQueryString(params)}`, {
+            jsonpCallback: 'callback'
+        }).then(response => {
+            return resolve(response.json());
+        })
+    })
+}
+export function getWechatUserinfo(params) {
+    return Rx.Observable.fromPromise($.ajax({
+        url: `https://api.weixin.qq.com/sns/userinfo`,
+        data: params || {},
+        dataType: 'jsonp',
+        type: 'get',
+        cache: false
+    }).promise()).toPromise()
+}
