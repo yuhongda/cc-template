@@ -10,15 +10,23 @@ const path = require('path')
 const express = require('express')
 const Koa = require('koa')
 const webpack = require('webpack')
+const merge = require('webpack-merge')
 const proxyMiddleware = require('http-proxy-middleware')
 const webpackConfig = require('./webpack.config.babel')
+const loadPluginConfig = require('../config/loadPluginConfig')
 
 const port = process.env.PORT || config.dev.port
 const autoOpenBrowser = !!config.dev.autoOpenBrowser
 
 const app = express()
 // const app = new Koa()
-const compiler = webpack(webpackConfig)
+
+
+// 读取plugin configs
+const pluginConfigs = loadPluginConfig()
+
+
+const compiler = webpack(merge(webpackConfig, pluginConfigs))
 
 const devMiddleware = require('webpack-dev-middleware')(compiler, {
     publicPath: webpackConfig.output.publicPath,
