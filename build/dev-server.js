@@ -26,7 +26,7 @@ const app = express()
 const pluginConfigs = loadPluginConfig()
 
 
-const compiler = webpack(merge(webpackConfig, pluginConfigs))
+const compiler = webpack(merge(webpackConfig, pluginConfigs.toConfig()))
 
 const devMiddleware = require('webpack-dev-middleware')(compiler, {
     publicPath: webpackConfig.output.publicPath,
