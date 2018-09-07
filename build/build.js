@@ -8,6 +8,7 @@ var webpack = require('webpack')
 var config = require('../config')
 var webpackConfig = require('./webpack.config.babel')
 const merge = require('webpack-merge')
+const loadPluginConfig = require('../config/loadPluginConfig')
 
 // 读取plugin configs
 const pluginConfigs = loadPluginConfig()

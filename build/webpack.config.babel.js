@@ -2,18 +2,22 @@
 var webpack = require('webpack'),
     path = require('path'),
     HtmlWebpackPlugin = require('html-webpack-plugin'),
-    ExtractTextPlugin = require('extract-text-webpack-plugin'),
+    MiniCssExtractPlugin = require("mini-css-extract-plugin"),
     config = require('../config'),
     CopyWebpackPlugin = require('copy-webpack-plugin'),
     BomPlugin = require('webpack-utf8-bom'),
     FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin');
 
+const VueLoaderPlugin = require('vue-loader/lib/plugin')
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+
 var _version = '20180503';
 const isProd = process.env.NODE_ENV === 'production';
 
 module.exports = {
+    mode: process.env.NODE_ENV,
     entry: {
-        app: process.env.NODE_ENV === 'production' ? ['./app.js'] : ['./build/dev-client', './app.js'],
+        app: process.env.NODE_ENV === 'production' ? ["@babel/polyfill", './app.js'] : ["@babel/polyfill", './build/dev-client', './app.js'],
         vendor:['vue', 'vue-router', 'vuex']
     },
     output: {
@@ -37,43 +41,36 @@ module.exports = {
         rules: [
             {
                 test: /\.vue$/,
-                use:[
-                    {
-                        loader: 'vue-loader',
-                        options: {
-                            loaders: {
-                                'scss': 'vue-style-loader!css-loader?-autoprefixer!sass-loader!postcss-loader',
-                                'sass': 'vue-style-loader!css-loader!sass-loader?indentedSyntax',
-                                js: 'babel-loader?presets[]=es2015&presets[]=stage-2'
-                            }
-                        }
-                    }
-                ]
+                loader: 'vue-loader'
             },
             {
                 test: /\.js$/,
                 exclude: /node_modules/,
-                use:[
-                    {
-                        loader: 'babel-loader?cacheDirectory',
-                        options: {
-                            plugins: ['external-helpers']
-                        }
-                    }
-                ],
-                
+                // exclude: /node_modules(?![\\/]vue-echarts[\\/])/,
+                // include: [
+                //     path.resolve(__dirname, '../', ''),
+                //     path.resolve(__dirname, '../', 'node_modules/vue-echarts'),
+                //     path.resolve(__dirname, '../', 'node_modules/resize-detector'),
+                // ],
+                loader: 'babel-loader?cacheDirectory',
             },
             {
                 test: /\.s[c|a]ss$/,
                 exclude: /node_modules/,
                 use: [{
-                    loader: "style-loader"
+                    loader: "vue-style-loader"
                 }, {
                     loader: "css-loader"
-                },{ 
-                    loader: "postcss-loader"
                 }, {
+                    loader: "sass-loader"
+                }]
+            },
+            {
+                test: /\.css$/,
+                use: [{
                     loader: "vue-style-loader"
+                }, {
+                    loader: "css-loader"
                 }]
             },
             {
@@ -109,23 +106,12 @@ module.exports = {
                 ]
             },
             {
-                test: /\.css$/,
-                loader: ExtractTextPlugin.extract({
-                    fallback: 'style-loader',
-                    use: [{
-                      loader: 'css-loader',
-                      options: {
-                        minimize: (isProd),
-                        sourceMap: !isProd
-                      }
-                    }, 'postcss-loader', {
-                      loader: 'sass-loader'
-                    }]
-                  })
-            },
-            {
-                test: /\.styl$/,
-                loader: ExtractTextPlugin.extract('css-loader!stylus-loader')        
+                test: /\.styl(us)?$/,
+                use: [
+                    'vue-style-loader',
+                    'css-loader',
+                    'stylus-loader'
+                ]
             },
             {
                 test: /\.json$/,
@@ -138,21 +124,22 @@ module.exports = {
                     : `url-loader?limit=10000&name=${ path.posix.join(config.dev.assetsSubDirectory, 'fonts/[name].[ext]') }`]
             }
         ]
-    }
+    },
+    optimization:{}
 }
 
 
 module.exports.plugins = [
-    new webpack.optimize.CommonsChunkPlugin({
-        name: 'vendor',
-        filename: process.env.NODE_ENV === 'production'
-            ? path.posix.join(config.build.assetsSubDirectory, `js/vendors.min.js`)
-            : path.posix.join(config.dev.assetsSubDirectory, `js/vendors.min.js`),
-        minify: {
-            removeComments: true,
-            collapseWhitespace: false
-        }
-    }),
+    // new webpack.optimize.CommonsChunkPlugin({
+    //     name: 'vendor',
+    //     filename: process.env.NODE_ENV === 'production'
+    //         ? path.posix.join(config.build.assetsSubDirectory, `js/vendors.min.js`)
+    //         : path.posix.join(config.dev.assetsSubDirectory, `js/vendors.min.js`),
+    //     minify: {
+    //         removeComments: true,
+    //         collapseWhitespace: false
+    //     }
+    // }),
     new webpack.NoEmitOnErrorsPlugin(),
     new HtmlWebpackPlugin({
         filename:'index.html',
@@ -170,7 +157,10 @@ module.exports.plugins = [
             ? path.posix.join(config.build.assetsSubDirectory, `css/libs/[name].[ext]`)
             : path.posix.join(config.dev.assetsSubDirectory, `css/libs/[name].[ext]`) }
     ], {}),
-    new ExtractTextPlugin({ filename: `static/css/[name].${_version}.css`, allChunks: true }),
+    new MiniCssExtractPlugin({
+        filename: !isProd ? `static/css/[name].${_version}.css` : `static/css/[name].${_version}.[hash].css`,
+        chunkFilename: !isProd ? `static/css/[id].${_version}.css` : `static/css/[id].${_version}.[hash].css`,
+    }),
     new webpack.DefinePlugin({
         'process.env': {
             NODE_ENV: JSON.stringify("production")
@@ -179,33 +169,26 @@ module.exports.plugins = [
             ? "'pro'"
             : "'dev'"
     }),
-    new FriendlyErrorsPlugin()
+    new FriendlyErrorsPlugin(),
+    new VueLoaderPlugin()
 ];
 
 if (process.env.NODE_ENV === 'production') {
+    module.exports.optimization.minimizer = [
+        // we specify a custom UglifyJsPlugin here to get source maps in production
+        new UglifyJsPlugin({
+          cache: true,
+          parallel: true,
+          uglifyOptions: {
+            compress: false,
+            ecma: 6,
+            mangle: true
+          },
+          sourceMap: true
+        })
+    ];
+    
     module.exports.plugins = (module.exports.plugins || []).concat([
-        new webpack.LoaderOptionsPlugin({
-            test: /\.vue$/,
-            options: {
-                vue: {
-                    loaders: {
-                        css: ExtractTextPlugin.extract('css-loader'),
-                        stylus: ExtractTextPlugin.extract('css-loader!stylus-loader'),
-                        js: 'babel-loader?presets[]=es2015&presets[]=stage-2'
-                    },
-                    postcss: [
-                        require('autoprefixer')({
-                            browsers: ['last 2 versions']
-                        })
-                    ]
-                }
-            }
-        }),
-        new webpack.optimize.UglifyJsPlugin({
-            compress: {
-                warnings: false
-            }
-        }),
         new webpack.optimize.OccurrenceOrderPlugin()
     ]);
 } else {

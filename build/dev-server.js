@@ -41,12 +41,19 @@ const hotMiddleware = require('webpack-hot-middleware')(compiler, {
     log: () => {}
 })
 
-compiler.plugin('compilation', function (compilation) {
-    compilation.plugin('html-webpack-plugin-after-emit', function (data, cb) {
-        hotMiddleware.publish({ action: 'reload' })
-        cb()
-    })
+// compiler.plugin('compilation', function (compilation) {
+//     compilation.plugin('html-webpack-plugin-after-emit', function (data, cb) {
+//         hotMiddleware.publish({ action: 'reload' })
+//         cb()
+//     })
+// })
+compiler.hooks.compilation.tap('html-webpack-plugin', compilation => {
+  compilation.hooks.htmlWebpackPluginAfterEmit.tapAsync('html-webpack-plugin', (data, cb) => {
+    hotMiddleware.publish({ action: 'reload' })
+    cb()
+  })
 })
+
 
 app.use(require('connect-history-api-fallback')())
 app.use(devMiddleware)

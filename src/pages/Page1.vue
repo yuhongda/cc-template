@@ -1,5 +1,4 @@
 ﻿<style lang="scss" scoped>
-    
 </style>
 
 <template>
@@ -7,6 +6,7 @@
         <div class="page-content">
             <h1>Page1</h1>
             <div>{{page1.value1}}</div>
+            <el-button>默认按钮</el-button>
         </div>
     </div>
 </template>
